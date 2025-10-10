@@ -2,6 +2,10 @@ package com.haras.view;
 
 import javax.swing.*;
 import java.awt.*;
+import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
+import org.kordamp.ikonli.swing.FontIcon;
+import com.haras.controller.NavigationController;
+import com.haras.controller.NavigationController.Page;
 
 public class BaseView extends JFrame {
     protected JPanel contentArea;
@@ -11,8 +15,12 @@ public class BaseView extends JFrame {
     private JButton btnAgenda;
     private JButton btnHistoricoVeterinario;
     private JButton btnTrocarPerfil;
+    
+    // Controller para navegação
+    private NavigationController navigationController;
 
     public BaseView() {
+        this.navigationController = new NavigationController();
         initComponents();
         setupLayout();
     }
@@ -51,7 +59,7 @@ public class BaseView extends JFrame {
         JPanel sidebar = new JPanel();
         sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
         sidebar.setBackground(Color.WHITE);
-        sidebar.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        sidebar.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
         sidebar.setPreferredSize(new Dimension(280, 0));
 
         // Logo e título
@@ -60,21 +68,45 @@ public class BaseView extends JFrame {
         // Perfil do cliente
         JPanel profilePanel = createProfilePanel();
 
-        // Inicializar botão Trocar Perfil antes do menu
-        btnTrocarPerfil = new JButton("🔄 Trocar Perfil");
+        // Botão Trocar Perfil com FontIcon
+        FontIcon switchIcon = FontIcon.of(FontAwesomeSolid.EXCHANGE_ALT, 14, new Color(107, 114, 128));
+        btnTrocarPerfil = new JButton("Trocar Perfil", switchIcon);
         btnTrocarPerfil.setAlignmentX(Component.CENTER_ALIGNMENT);
-        btnTrocarPerfil.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
-        btnTrocarPerfil.setBackground(new Color(240, 240, 240));
-        btnTrocarPerfil.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        btnTrocarPerfil.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+        btnTrocarPerfil.setBackground(new Color(249, 250, 251));
+        btnTrocarPerfil.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(229, 231, 235), 1),
+            BorderFactory.createEmptyBorder(12, 16, 12, 16)
+        ));
         btnTrocarPerfil.setFocusPainted(false);
+        btnTrocarPerfil.setContentAreaFilled(false);
+        btnTrocarPerfil.setOpaque(true);
+        btnTrocarPerfil.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        btnTrocarPerfil.setForeground(new Color(107, 114, 128));
+        
+        btnTrocarPerfil.addActionListener(e -> System.out.println("Trocando Perfil"));
+        
+        // Hover effect
+        btnTrocarPerfil.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                btnTrocarPerfil.setBackground(new Color(243, 244, 246));
+                switchIcon.setIconColor(new Color(55, 65, 81));
+                btnTrocarPerfil.setForeground(new Color(55, 65, 81));
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                btnTrocarPerfil.setBackground(new Color(249, 250, 251));
+                switchIcon.setIconColor(new Color(107, 114, 128));
+                btnTrocarPerfil.setForeground(new Color(107, 114, 128));
+            }
+        });
 
         // Menu items
         JPanel menuPanel = createMenuPanel();
 
         sidebar.add(logoPanel);
-        sidebar.add(Box.createVerticalStrut(30));
+        sidebar.add(Box.createVerticalStrut(32));
         sidebar.add(profilePanel);
-        sidebar.add(Box.createVerticalStrut(30));
+        sidebar.add(Box.createVerticalStrut(32));
         sidebar.add(menuPanel);
         sidebar.add(Box.createVerticalGlue());
         sidebar.add(btnTrocarPerfil);
@@ -87,19 +119,21 @@ public class BaseView extends JFrame {
         logoPanel.setBackground(Color.WHITE);
         logoPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
 
-        JLabel logoLabel = new JLabel("🐎");
-        logoLabel.setFont(new Font("Arial", Font.BOLD, 32));
+        // Ícone Font Awesome para cavalos
+        FontIcon logoIcon = FontIcon.of(FontAwesomeSolid.HORSE, 24, new Color(139, 69, 19));
+        JLabel logoLabel = new JLabel();
+        logoLabel.setIcon(logoIcon);
 
         JPanel titlePanel = new JPanel();
         titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
         titlePanel.setBackground(Color.WHITE);
 
         JLabel titleLabel = new JLabel("Haras Premium");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
         titleLabel.setForeground(new Color(139, 69, 19));
 
         JLabel subtitleLabel = new JLabel("Sistema de Gerenciamento");
-        subtitleLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         subtitleLabel.setForeground(Color.GRAY);
 
         titlePanel.add(titleLabel);
@@ -117,29 +151,46 @@ public class BaseView extends JFrame {
         profilePanel.setBackground(Color.WHITE);
         profilePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
 
-        JLabel iconLabel = new JLabel("C");
-        iconLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        iconLabel.setForeground(Color.WHITE);
-        iconLabel.setOpaque(true);
-        iconLabel.setBackground(new Color(147, 51, 234));
-        iconLabel.setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
+        // Container circular para o avatar
+        JPanel iconContainer = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(147, 51, 234));
+                g2.fillOval(0, 0, getWidth(), getHeight());
+                g2.dispose();
+            }
+        };
+        iconContainer.setPreferredSize(new Dimension(48, 48));
+        iconContainer.setOpaque(false);
+        iconContainer.setLayout(new BorderLayout());
+
+        // Ícone Font Awesome de usuário
+        FontIcon userIcon = FontIcon.of(FontAwesomeSolid.USER, 18, Color.WHITE);
+        JLabel iconLabel = new JLabel();
+        iconLabel.setIcon(userIcon);
         iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        iconLabel.setVerticalAlignment(SwingConstants.CENTER);
+
+        iconContainer.add(iconLabel, BorderLayout.CENTER);
 
         JPanel infoPanel = new JPanel();
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
         infoPanel.setBackground(Color.WHITE);
 
         JLabel clienteLabel = new JLabel("Cliente");
-        clienteLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        clienteLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        clienteLabel.setForeground(new Color(31, 41, 55));
 
         JLabel perfilLabel = new JLabel("Perfil Ativo");
-        perfilLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        perfilLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         perfilLabel.setForeground(new Color(147, 51, 234));
 
         infoPanel.add(clienteLabel);
         infoPanel.add(perfilLabel);
 
-        profilePanel.add(iconLabel);
+        profilePanel.add(iconContainer);
         profilePanel.add(Box.createHorizontalStrut(15));
         profilePanel.add(infoPanel);
 
@@ -151,107 +202,154 @@ public class BaseView extends JFrame {
         menuPanel.setLayout(new BoxLayout(menuPanel, BoxLayout.Y_AXIS));
         menuPanel.setBackground(Color.WHITE);
 
-        btnDashboard = createMenuButton("📊 Dashboard", false);
-        btnMeusCavalos = createMenuButton("👥 Meus Cavalos", false);
-        btnMarketplace = createMenuButton("🛒 Marketplace", false);
-        btnAgenda = createMenuButton("📅 Agenda", false);
-        btnHistoricoVeterinario = createMenuButton("📋 Histórico Veterinário", false);
+        // Criar ícones Font Awesome
+        FontIcon dashboardIcon = FontIcon.of(FontAwesomeSolid.CHART_BAR, 16);
+        FontIcon horseIcon = FontIcon.of(FontAwesomeSolid.HORSE, 16);
+        FontIcon marketIcon = FontIcon.of(FontAwesomeSolid.SHOPPING_CART, 16);
+        FontIcon calendarIcon = FontIcon.of(FontAwesomeSolid.CALENDAR, 16);
+        FontIcon medicalIcon = FontIcon.of(FontAwesomeSolid.STETHOSCOPE, 16);
 
-        // Event listeners
-        btnDashboard.addActionListener(e -> showDashboard());
-        btnMeusCavalos.addActionListener(e -> showMeusCavalos());
-        btnMarketplace.addActionListener(e -> System.out.println("Abrindo Marketplace"));
-        btnAgenda.addActionListener(e -> showAgenda());
-        btnHistoricoVeterinario.addActionListener(e -> System.out.println("Abrindo Histórico Veterinário"));
-        btnTrocarPerfil.addActionListener(e -> System.out.println("Trocando Perfil"));
+        // Criar botões com ícones Font Awesome
+        btnDashboard = new JButton("Dashboard", dashboardIcon);
+        btnMeusCavalos = new JButton("Meus Cavalos", horseIcon);
+        btnMarketplace = new JButton("Marketplace", marketIcon);
+        btnAgenda = new JButton("Agenda", calendarIcon);
+        btnHistoricoVeterinario = new JButton("Histórico Veterinário", medicalIcon);
+
+        // Configurar estilo dos botões
+        JButton[] buttons = {btnDashboard, btnMeusCavalos, btnMarketplace, btnAgenda, btnHistoricoVeterinario};
+        for (JButton button : buttons) {
+            configureMenuButton(button);
+        }
+
+        // Event listeners usando o NavigationController
+        btnDashboard.addActionListener(e -> navigateToPage(Page.DASHBOARD, btnDashboard));
+        btnMeusCavalos.addActionListener(e -> navigateToPage(Page.MEUS_CAVALOS, btnMeusCavalos));
+        btnMarketplace.addActionListener(e -> navigateToPage(Page.MARKETPLACE, btnMarketplace));
+        btnAgenda.addActionListener(e -> navigateToPage(Page.AGENDA, btnAgenda));
+        btnHistoricoVeterinario.addActionListener(e -> navigateToPage(Page.HISTORICO_VETERINARIO, btnHistoricoVeterinario));
 
         menuPanel.add(btnDashboard);
+        menuPanel.add(Box.createVerticalStrut(4));
         menuPanel.add(btnMeusCavalos);
+        menuPanel.add(Box.createVerticalStrut(4));
         menuPanel.add(btnMarketplace);
+        menuPanel.add(Box.createVerticalStrut(4));
         menuPanel.add(btnAgenda);
+        menuPanel.add(Box.createVerticalStrut(4));
         menuPanel.add(btnHistoricoVeterinario);
 
         return menuPanel;
     }
 
-    private JButton createMenuButton(String text, boolean active) {
-        JButton button = new JButton(text);
+    private void configureMenuButton(JButton button) {
         button.setAlignmentX(Component.LEFT_ALIGNMENT);
-        button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
-        button.setHorizontalAlignment(SwingConstants.LEFT);
-        button.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+        button.setPreferredSize(new Dimension(240, 44));
+        button.setBorder(BorderFactory.createEmptyBorder(10, 16, 10, 16));
         button.setFocusPainted(false);
-        button.setFont(new Font("Arial", Font.PLAIN, 14));
+        button.setContentAreaFilled(false);
+        button.setOpaque(true);
         button.setBackground(Color.WHITE);
-        button.setForeground(Color.BLACK);
+        button.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        button.setForeground(new Color(107, 114, 128));
+        button.setHorizontalAlignment(SwingConstants.LEFT);
         
+        FontIcon icon = (FontIcon) button.getIcon();
+        if (icon != null) {
+            icon.setIconColor(new Color(107, 114, 128));
+        }
+        
+        // Hover effect
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 if (!button.getBackground().equals(new Color(147, 51, 234))) {
-                    button.setBackground(new Color(248, 250, 252));
+                    button.setBackground(new Color(249, 250, 251));
+                    button.setForeground(new Color(55, 65, 81));
+                    if (icon != null) {
+                        icon.setIconColor(new Color(55, 65, 81));
+                    }
                 }
             }
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 if (!button.getBackground().equals(new Color(147, 51, 234))) {
                     button.setBackground(Color.WHITE);
+                    button.setForeground(new Color(107, 114, 128));
+                    if (icon != null) {
+                        icon.setIconColor(new Color(107, 114, 128));
+                    }
                 }
             }
         });
-
-        return button;
     }
 
     private void updateActiveButton(JButton activeButton) {
+        JButton[] buttons = {btnDashboard, btnMeusCavalos, btnMarketplace, btnAgenda, btnHistoricoVeterinario};
+        
         // Resetar todos os botões
-        btnDashboard.setBackground(Color.WHITE);
-        btnDashboard.setForeground(Color.BLACK);
-        btnMeusCavalos.setBackground(Color.WHITE);
-        btnMeusCavalos.setForeground(Color.BLACK);
-        btnMarketplace.setBackground(Color.WHITE);
-        btnMarketplace.setForeground(Color.BLACK);
-        btnAgenda.setBackground(Color.WHITE);
-        btnAgenda.setForeground(Color.BLACK);
-        btnHistoricoVeterinario.setBackground(Color.WHITE);
-        btnHistoricoVeterinario.setForeground(Color.BLACK);
+        for (JButton button : buttons) {
+            if (button != null) {
+                button.setBackground(Color.WHITE);
+                button.setBorder(BorderFactory.createEmptyBorder(10, 16, 10, 16));
+                button.setForeground(new Color(107, 114, 128));
+                FontIcon icon = (FontIcon) button.getIcon();
+                if (icon != null) {
+                    icon.setIconColor(new Color(107, 114, 128));
+                }
+            }
+        }
 
-        // Ativar o botão selecionado
-        activeButton.setBackground(new Color(147, 51, 234));
-        activeButton.setForeground(Color.WHITE);
+        // Ativar botão selecionado
+        if (activeButton != null) {
+            activeButton.setBackground(new Color(147, 51, 234));
+            activeButton.setForeground(Color.WHITE);
+            activeButton.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 3, 0, 0, new Color(199, 125, 255)),
+                BorderFactory.createEmptyBorder(10, 13, 10, 16)
+            ));
+            FontIcon icon = (FontIcon) activeButton.getIcon();
+            if (icon != null) {
+                icon.setIconColor(Color.WHITE);
+            }
+        }
+    }
+
+    /**
+     * Navega para uma página específica
+     */
+    private void navigateToPage(Page page, JButton activeButton) {
+        try {
+            // Obter conteúdo da página através do controller
+            JPanel pageContent = navigationController.getPage(page);
+            String pageTitle = navigationController.getPageTitle(page);
+            
+            // Atualizar interface
+            contentArea.removeAll();
+            contentArea.add(pageContent, BorderLayout.CENTER);
+            contentArea.revalidate();
+            contentArea.repaint();
+            
+            // Atualizar botão ativo e título
+            updateActiveButton(activeButton);
+            setTitle(pageTitle);
+            
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, 
+                "Erro ao carregar página: " + e.getMessage(), 
+                "Erro", 
+                JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     protected void showDashboard() {
-        DashboardClienteView dashboardView = new DashboardClienteView();
-        JPanel dashboardContent = dashboardView.getContentPanel();
-        
-        contentArea.removeAll();
-        contentArea.add(dashboardContent, BorderLayout.CENTER);
-        contentArea.revalidate();
-        contentArea.repaint();
-        updateActiveButton(btnDashboard);
-        setTitle("Haras Premium - Dashboard Cliente");
+        navigateToPage(Page.DASHBOARD, btnDashboard);
     }
 
     protected void showMeusCavalos() {
-        MeusCavalosView meusCavalosView = new MeusCavalosView();
-        JPanel meusCavalosContent = meusCavalosView.getContentPanel();
-        
-        contentArea.removeAll();
-        contentArea.add(meusCavalosContent, BorderLayout.CENTER);
-        contentArea.revalidate();
-        contentArea.repaint();
-        updateActiveButton(btnMeusCavalos);
-        setTitle("Haras Premium - Meus Cavalos");
+        navigateToPage(Page.MEUS_CAVALOS, btnMeusCavalos);
     }
 
     protected void showAgenda() {
-        AgendaView agendaView = new AgendaView();
-        JPanel agendaContent = agendaView.getContentPanel();
-        
-        contentArea.removeAll();
-        contentArea.add(agendaContent, BorderLayout.CENTER);
-        contentArea.revalidate();
-        contentArea.repaint();
-        updateActiveButton(btnAgenda);
-        setTitle("Haras Premium - Agenda de Eventos");
+        navigateToPage(Page.AGENDA, btnAgenda);
     }
 }
