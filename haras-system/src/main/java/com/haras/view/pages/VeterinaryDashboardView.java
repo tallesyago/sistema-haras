@@ -74,6 +74,19 @@ public class VeterinaryDashboardView {
         novaConsultaBtn.setFocusPainted(false);
         novaConsultaBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
+        // Delegar a ação para o controller (padrão MVC)
+        novaConsultaBtn.addActionListener(new java.awt.event.ActionListener() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                try {
+                    com.haras.controller.VeterinaryController.getInstance().createNewConsultationDialog(novaConsultaBtn);
+                } catch (Exception ex) {
+                    // Em caso de erro, mostrar mensagem simples (NavigationController trata erros globais)
+                    javax.swing.JOptionPane.showMessageDialog(novaConsultaBtn, "Erro: " + ex.getMessage(), "Erro", javax.swing.JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
         headerPanel.add(leftPanel, BorderLayout.WEST);
         headerPanel.add(novaConsultaBtn, BorderLayout.EAST);
         

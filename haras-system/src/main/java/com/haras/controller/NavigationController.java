@@ -2,11 +2,50 @@ package com.haras.controller;
 
 import javax.swing.JPanel;
 import com.haras.view.pages.*;
+import com.haras.model.Usuario;
+import com.haras.view.BaseView;
 
 /**
- * Controller responsável pela navegação entre páginas
+ * Controller responsável pela navegação entre páginas e gerenciamento dos controladores específicos
  */
 public class NavigationController {
+    private static NavigationController instance;
+    private Usuario loggedUser;
+    private BaseView currentView;
+    
+    // Controladores específicos
+    private AgendaController agendaController;
+    private AtendimentoController atendimentoController;
+    private ClienteController clienteController;
+    private EquinoController equinoController;
+    private MarketplaceController marketplaceController;
+    private VeterinaryController veterinaryController;
+    
+    private NavigationController() {
+        initializeControllers();
+    }
+    
+    /**
+     * Obtém a instância única do NavigationController (Singleton)
+     */
+    public static NavigationController getInstance() {
+        if (instance == null) {
+            instance = new NavigationController();
+        }
+        return instance;
+    }
+    
+    /**
+     * Inicializa todos os controladores específicos
+     */
+    private void initializeControllers() {
+        agendaController = AgendaController.getInstance();
+        atendimentoController = AtendimentoController.getInstance();
+        clienteController = ClienteController.getInstance();
+        equinoController = EquinoController.getInstance();
+        marketplaceController = MarketplaceController.getInstance();
+        veterinaryController = VeterinaryController.getInstance();
+    }
     
     public enum Page {
         DASHBOARD,
@@ -25,10 +64,14 @@ public class NavigationController {
                 case DASHBOARD:
                     return new DashboardView().getContentPanel();
                 case MEUS_CAVALOS:
+                    // Preferir painel fornecido pelo controller
+                    if (equinoController != null) return equinoController.getView();
                     return new MeusCavalosView().getContentPanel();
                 case MARKETPLACE:
+                    if (marketplaceController != null) return marketplaceController.getView();
                     return new MarketplaceView().getContentPanel();
                 case AGENDA:
+                    if (agendaController != null) return agendaController.getView();
                     return new AgendaView().getContentPanel();
                 case HISTORICO_VETERINARIO:
                     return new HistoricoVeterinarioView().getContentPanel();
@@ -68,5 +111,87 @@ public class NavigationController {
             default:
                 return "Haras Premium";
         }
+    }
+
+    /**
+     * Define o usuário logado no sistema
+     */
+    public void setLoggedUser(Usuario usuario) {
+        this.loggedUser = usuario;
+    }
+    
+    /**
+     * Obtém o usuário atualmente logado no sistema
+     */
+    public Usuario getLoggedUser() {
+        return loggedUser;
+    }
+    
+    /**
+     * Define a view atual sendo exibida
+     */
+    public void setCurrentView(BaseView view) {
+        this.currentView = view;
+    }
+    
+    /**
+     * Obtém a view atual sendo exibida
+     */
+    public BaseView getCurrentView() {
+        return currentView;
+    }
+
+    // Getters para os controladores específicos
+    
+    public AgendaController getAgendaController() {
+        return agendaController;
+    }
+    
+    public AtendimentoController getAtendimentoController() {
+        return atendimentoController;
+    }
+    
+    public ClienteController getClienteController() {
+        return clienteController;
+    }
+    
+    public EquinoController getEquinoController() {
+        return equinoController;
+    }
+    
+    public MarketplaceController getMarketplaceController() {
+        return marketplaceController;
+    }
+    
+    public VeterinaryController getVeterinaryController() {
+        return veterinaryController;
+    }
+
+    /**
+     * Método acionado pela view para trocar o perfil ativo (placeholder)
+     */
+    public void toggleProfile() {
+        // Implementação simples: alternar usuário logado para null ou manter (pode ser aprimorada)
+        if (this.loggedUser == null) {
+            // Placeholder: criar um usuário temporário se necessário
+            // this.loggedUser = new Usuario();
+        } else {
+            this.loggedUser = null;
+        }
+        if (currentView != null) {
+            currentView.updateProfileInfo(this.loggedUser);
+        }
+    }
+
+    /**
+     * Tratamento centralizado de erros de navegação (exibe diálogo)
+     */
+    public void handleNavigationError(Exception e) {
+        javax.swing.JOptionPane.showMessageDialog(
+            currentView != null ? currentView : null,
+            "Erro ao carregar página: " + e.getMessage(),
+            "Erro",
+            javax.swing.JOptionPane.ERROR_MESSAGE
+        );
     }
 }

@@ -6,13 +6,21 @@ import java.util.Date;
 import java.util.List;
 
 public class AtendimentoController {
-    private List<Atendimento> atendimentos;
+    private static AtendimentoController instance;
+    private final List<Atendimento> atendimentos;
     private int proximoId;
     
-    public AtendimentoController() {
+    private AtendimentoController() {
         this.atendimentos = new ArrayList<>();
         this.proximoId = 1;
         inicializarDadosExemplo();
+    }
+    
+    public static AtendimentoController getInstance() {
+        if (instance == null) {
+            instance = new AtendimentoController();
+        }
+        return instance;
     }
     
     private void inicializarDadosExemplo() {

@@ -53,7 +53,11 @@ public class MeusCavalosView {
         addButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
         addButton.setBorder(BorderFactory.createEmptyBorder(12, 20, 12, 20));
         addButton.setFocusPainted(false);
-        addButton.addActionListener(e -> JOptionPane.showMessageDialog(null, "Funcionalidade em desenvolvimento!"));
+        addButton.addActionListener(e -> {
+            // Delegar a interação ao EquinoController (padrão MVC)
+            com.haras.controller.EquinoController controller = com.haras.controller.EquinoController.getInstance();
+            controller.promptAndAddEquino(null);
+        });
         
         headerPanel.add(titlePanel, BorderLayout.WEST);
         headerPanel.add(addButton, BorderLayout.EAST);

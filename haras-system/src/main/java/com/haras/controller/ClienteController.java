@@ -6,13 +6,21 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class ClienteController {
+    private static ClienteController instance;
     private List<Cliente> clientes;
     private int proximoId;
     
-    public ClienteController() {
+    private ClienteController() {
         this.clientes = new ArrayList<>();
         this.proximoId = 1;
         inicializarDadosExemplo();
+    }
+    
+    public static ClienteController getInstance() {
+        if (instance == null) {
+            instance = new ClienteController();
+        }
+        return instance;
     }
     
     private void inicializarDadosExemplo() {

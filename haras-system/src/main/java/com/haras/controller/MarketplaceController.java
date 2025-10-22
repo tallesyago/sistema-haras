@@ -1,18 +1,30 @@
 package com.haras.controller;
 
 import com.haras.view.pages.MarketplaceView;
+import com.haras.model.ItemMarketplace;
 import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class MarketplaceController {
+    private static MarketplaceController instance;
     private MarketplaceView view;
     private List<ItemMarketplace> items;
     
-    public MarketplaceController() {
+    private MarketplaceController() {
         this.view = new MarketplaceView();
         this.items = new ArrayList<>();
         initializeActions();
+        inicializarDadosExemplo();
+    }
+    
+    public static MarketplaceController getInstance() {
+        if (instance == null) {
+            instance = new MarketplaceController();
+        }
+        return instance;
     }
     
     private void initializeActions() {
@@ -21,6 +33,27 @@ public class MarketplaceController {
     
     public JPanel getView() {
         return view.getContentPanel();
+    }
+    
+    private void inicializarDadosExemplo() {
+        // Adicionar alguns itens de exemplo
+        items.add(new ItemMarketplace(
+            UUID.randomUUID().toString(),
+            "Cavalo Puro Sangue Inglês",
+            "Cavalo",
+            "Excelente exemplar de PSI, 5 anos",
+            50000.0,
+            "1"
+        ));
+        
+        items.add(new ItemMarketplace(
+            UUID.randomUUID().toString(),
+            "Sela Profissional",
+            "Equipamento",
+            "Sela em couro legítimo",
+            2500.0,
+            "2"
+        ));
     }
     
     public void addItemForSale() {
@@ -34,70 +67,73 @@ public class MarketplaceController {
                 "Título do Anúncio:", "Adicionar Item", JOptionPane.QUESTION_MESSAGE);
             
             if (title != null && !title.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(null, 
-                    "Item '" + title + "' será adicionado ao marketplace!\nFuncionalidade em desenvolvimento.", 
-                    "Sucesso", 
-                    JOptionPane.INFORMATION_MESSAGE);
+                String descricao = JOptionPane.showInputDialog(null, 
+                    "Descrição do Item:", "Adicionar Item", JOptionPane.QUESTION_MESSAGE);
+                    
+                String precoStr = JOptionPane.showInputDialog(null, 
+                    "Preço do Item:", "Adicionar Item", JOptionPane.QUESTION_MESSAGE);
+                    
+                try {
+                    double preco = Double.parseDouble(precoStr);
+                    ItemMarketplace novoItem = new ItemMarketplace(
+                        UUID.randomUUID().toString(),
+                        title.trim(),
+                        type,
+                        descricao,
+                        preco,
+                        "1" // ID do vendedor atual (pode ser obtido do usuário logado)
+                    );
+                    
+                    items.add(novoItem);
+                    JOptionPane.showMessageDialog(null, 
+                        "Item '" + title + "' adicionado com sucesso!", 
+                        "Sucesso", 
+                        JOptionPane.INFORMATION_MESSAGE);
+                    refreshMarketplace();
+                } catch (NumberFormatException e) {
+                    JOptionPane.showMessageDialog(null, 
+                        "Preço inválido!", 
+                        "Erro", 
+                        JOptionPane.ERROR_MESSAGE);
+                }
             }
         }
     }
     
-    public void searchItems(String query) {
-        JOptionPane.showMessageDialog(null, 
-            "Buscar: '" + query + "'\nFuncionalidade em desenvolvimento!", 
-            "Busca", 
-            JOptionPane.INFORMATION_MESSAGE);
+    public List<ItemMarketplace> searchItems(String query) {
+        final String searchQuery = query.toLowerCase();
+        return items.stream()
+            .filter(item -> 
+                item.getTitulo().toLowerCase().contains(searchQuery) ||
+                item.getDescricao().toLowerCase().contains(searchQuery))
+            .collect(Collectors.toList());
     }
     
-    public void filterByCategory(String category) {
-        JOptionPane.showMessageDialog(null, 
-            "Filtrar por: " + category + "\nFuncionalidade em desenvolvimento!", 
-            "Filtro", 
-            JOptionPane.INFORMATION_MESSAGE);
+    public List<ItemMarketplace> filterByCategory(String category) {
+        return items.stream()
+            .filter(item -> item.getTipo().equalsIgnoreCase(category))
+            .collect(Collectors.toList());
     }
     
-    public void viewItemDetails(String itemId) {
-        JOptionPane.showMessageDialog(null, 
-            "Detalhes do Item - Funcionalidade em desenvolvimento!", 
-            "Detalhes", 
-            JOptionPane.INFORMATION_MESSAGE);
+    public ItemMarketplace getItemDetails(String itemId) {
+        return items.stream()
+            .filter(item -> item.getId().equals(itemId))
+            .findFirst()
+            .orElse(null);
     }
     
-    public void contactSeller(String sellerId) {
-        JOptionPane.showMessageDialog(null, 
-            "Contatar Vendedor - Funcionalidade em desenvolvimento!", 
-            "Contato", 
-            JOptionPane.INFORMATION_MESSAGE);
+    public boolean removeItem(String itemId) {
+        return items.removeIf(item -> item.getId().equals(itemId));
+    }
+    
+    public List<ItemMarketplace> getAllItems() {
+        return new ArrayList<>(items);
     }
     
     public void refreshMarketplace() {
-        // Atualizar marketplace
-    }
-    
-    // Classe interna temporária para representar um item do marketplace
-    private static class ItemMarketplace {
-        private String id;
-        private String titulo;
-        private String tipo;
-        private String descricao;
-        private double preco;
-        private String vendedorId;
-        
-        public ItemMarketplace(String id, String titulo, String tipo, String descricao, double preco, String vendedorId) {
-            this.id = id;
-            this.titulo = titulo;
-            this.tipo = tipo;
-            this.descricao = descricao;
-            this.preco = preco;
-            this.vendedorId = vendedorId;
+        if (view != null) {
+            view.getContentPanel().revalidate();
+            view.getContentPanel().repaint();
         }
-        
-        // Getters
-        public String getId() { return id; }
-        public String getTitulo() { return titulo; }
-        public String getTipo() { return tipo; }
-        public String getDescricao() { return descricao; }
-        public double getPreco() { return preco; }
-        public String getVendedorId() { return vendedorId; }
     }
 }

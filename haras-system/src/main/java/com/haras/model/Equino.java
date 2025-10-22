@@ -1,7 +1,5 @@
 package com.haras.model;
 
-import java.util.Date;
-
 public class Equino {
     private int id;
     private String nome;
