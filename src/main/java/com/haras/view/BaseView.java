@@ -6,6 +6,7 @@ import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
 import org.kordamp.ikonli.swing.FontIcon;
 import com.haras.controller.NavigationController;
 import com.haras.controller.NavigationController.Page;
+import com.haras.model.Usuario;
 
 public class BaseView extends JFrame {
     protected JPanel contentArea;
@@ -17,10 +18,11 @@ public class BaseView extends JFrame {
     private JButton btnTrocarPerfil;
     
     // Controller para navegação
-    private NavigationController navigationController;
+    protected final NavigationController navigationController;
 
     public BaseView() {
-        this.navigationController = new NavigationController();
+        this.navigationController = NavigationController.getInstance();
+        this.navigationController.setCurrentView(this);
         initComponents();
         setupLayout();
     }
@@ -50,6 +52,11 @@ public class BaseView extends JFrame {
         mainPanel.add(contentArea, BorderLayout.CENTER);
 
         add(mainPanel);
+        
+        // Atualizar perfil do usuário se disponível
+        if (navigationController.getLoggedUser() != null) {
+            updateProfileInfo(navigationController.getLoggedUser());
+        }
         
         // Carregar dashboard inicial
         showDashboard();
@@ -84,7 +91,7 @@ public class BaseView extends JFrame {
         btnTrocarPerfil.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         btnTrocarPerfil.setForeground(new Color(107, 114, 128));
         
-        btnTrocarPerfil.addActionListener(e -> System.out.println("Trocando Perfil"));
+        btnTrocarPerfil.addActionListener(e -> navigationController.toggleProfile());
         
         // Hover effect
         btnTrocarPerfil.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -334,22 +341,30 @@ public class BaseView extends JFrame {
             setTitle(pageTitle);
             
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, 
-                "Erro ao carregar página: " + e.getMessage(), 
-                "Erro", 
-                JOptionPane.ERROR_MESSAGE);
+            // Delegar o tratamento de erro ao NavigationController para centralizar UI handling
+            navigationController.handleNavigationError(e);
         }
     }
 
-    protected void showDashboard() {
+    /**
+     * Atualiza as informações do perfil na interface com base no usuário logado
+     */
+    public void updateProfileInfo(Usuario usuario) {
+        if (usuario != null) {
+            // Atualizar as informações do perfil na interface
+            // Este método pode ser sobrescrito pelas classes filhas para customização
+        }
+    }
+
+    public void showDashboard() {
         navigateToPage(Page.DASHBOARD, btnDashboard);
     }
 
-    protected void showMeusCavalos() {
+    public void showMeusCavalos() {
         navigateToPage(Page.MEUS_CAVALOS, btnMeusCavalos);
     }
 
-    protected void showAgenda() {
+    public void showAgenda() {
         navigateToPage(Page.AGENDA, btnAgenda);
     }
 }

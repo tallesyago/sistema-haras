@@ -2,17 +2,15 @@ package com.haras.view.pages;
 
 import javax.swing.*;
 import java.awt.*;
-import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
-import org.kordamp.ikonli.swing.FontIcon;
 
-public class DashboardView {
+public class VeterinaryDashboardView {
     
     public JPanel getContentPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(new Color(248, 250, 252));
         panel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
 
-        // Header roxo com gradiente
+        // Header verde com gradiente
         JPanel headerPanel = createWelcomeHeader();
         
         // Cards de estatísticas
@@ -35,10 +33,10 @@ public class DashboardView {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 
-                // Gradiente roxo
+                // Gradiente verde médico
                 GradientPaint gradient = new GradientPaint(
-                    0, 0, new Color(147, 51, 234),
-                    getWidth(), getHeight(), new Color(120, 40, 200)
+                    0, 0, new Color(16, 185, 129),
+                    getWidth(), getHeight(), new Color(5, 150, 105)
                 );
                 g2.setPaint(gradient);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
@@ -55,11 +53,11 @@ public class DashboardView {
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
         leftPanel.setOpaque(false);
 
-        JLabel titleLabel = new JLabel("Bom dia, Cliente!");
+        JLabel titleLabel = new JLabel("Boa tarde, Dr. Veterinário!");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
         titleLabel.setForeground(Color.WHITE);
 
-        JLabel subtitleLabel = new JLabel("Bem-vindo ao seu painel de gerenciamento");
+        JLabel subtitleLabel = new JLabel("Painel Veterinário - Cuidados e Saúde Animal");
         subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         subtitleLabel.setForeground(new Color(255, 255, 255, 200));
 
@@ -67,13 +65,30 @@ public class DashboardView {
         leftPanel.add(Box.createVerticalStrut(5));
         leftPanel.add(subtitleLabel);
 
-        // Lado direito - Ícone decorativo
-        FontIcon decorativeIcon = FontIcon.of(FontAwesomeSolid.HORSE_HEAD, 64, new Color(255, 255, 255, 100));
-        JLabel decorativeLabel = new JLabel();
-        decorativeLabel.setIcon(decorativeIcon);
+        // Lado direito - Botão Nova Consulta
+        JButton novaConsultaBtn = new JButton("Nova Consulta");
+        novaConsultaBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        novaConsultaBtn.setForeground(new Color(16, 185, 129));
+        novaConsultaBtn.setBackground(Color.WHITE);
+        novaConsultaBtn.setBorder(BorderFactory.createEmptyBorder(12, 24, 12, 24));
+        novaConsultaBtn.setFocusPainted(false);
+        novaConsultaBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        // Delegar a ação para o controller (padrão MVC)
+        novaConsultaBtn.addActionListener(new java.awt.event.ActionListener() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                try {
+                    com.haras.controller.VeterinaryController.getInstance().createNewConsultationDialog(novaConsultaBtn);
+                } catch (Exception ex) {
+                    // Em caso de erro, mostrar mensagem simples (NavigationController trata erros globais)
+                    javax.swing.JOptionPane.showMessageDialog(novaConsultaBtn, "Erro: " + ex.getMessage(), "Erro", javax.swing.JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
 
         headerPanel.add(leftPanel, BorderLayout.WEST);
-        headerPanel.add(decorativeLabel, BorderLayout.EAST);
+        headerPanel.add(novaConsultaBtn, BorderLayout.EAST);
         
         return headerPanel;
     }
@@ -81,24 +96,24 @@ public class DashboardView {
     private JPanel createStatsPanel() {
         JPanel statsPanel = new JPanel(new GridLayout(1, 4, 20, 0));
         statsPanel.setBackground(new Color(248, 250, 252));
-        statsPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0)); // Reduzido de 30 para 20
+        statsPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
         
-        statsPanel.add(createStatCard("Meus Cavalos", "0", "Cadastrados", new Color(147, 51, 234), FontAwesomeSolid.HORSE));
-        statsPanel.add(createStatCard("Eventos Agendados", "0", "Próximos eventos", new Color(16, 185, 129), FontAwesomeSolid.CALENDAR));
-        statsPanel.add(createStatCard("Consultas", "0", "Histórico", new Color(59, 130, 246), FontAwesomeSolid.STETHOSCOPE));
-        statsPanel.add(createStatCard("À Venda", "0", "No marketplace", new Color(245, 158, 11), FontAwesomeSolid.SHOPPING_CART));
+        statsPanel.add(createStatCard("Consultas de Hoje", "0", "Agendadas", new Color(59, 130, 246)));
+        statsPanel.add(createStatCard("Próximas Consultas", "0", "Agendadas", new Color(16, 185, 129)));
+        statsPanel.add(createStatCard("Pacientes Ativos", "0", "Em tratamento", new Color(245, 158, 11)));
+        statsPanel.add(createStatCard("Consultas Concluídas", "0", "Histórico", new Color(147, 51, 234)));
         
         return statsPanel;
     }
     
-    private JPanel createStatCard(String title, String value, String subtitle, Color iconColor, FontAwesomeSolid iconType) {
+    private JPanel createStatCard(String title, String value, String subtitle, Color themeColor) {
         JPanel card = new JPanel(new BorderLayout());
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(new Color(229, 231, 235), 1),
-            BorderFactory.createEmptyBorder(12, 12, 12, 12) // Reduzido de 15 para 12
+            BorderFactory.createEmptyBorder(12, 12, 12, 12)
         ));
-        card.setPreferredSize(new Dimension(180, 70)); // Muito menor: 180x70
+        card.setPreferredSize(new Dimension(180, 70));
         card.setMaximumSize(new Dimension(180, 70));
         
         // Layout principal
@@ -107,11 +122,11 @@ public class DashboardView {
         
         // Título no topo à esquerda
         JLabel titleLabel = new JLabel(title);
-        titleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 10)); // Fonte menor
+        titleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 10));
         titleLabel.setForeground(new Color(107, 114, 128));
         titleLabel.setHorizontalAlignment(SwingConstants.LEFT);
         
-        // Container inferior com valor e ícone
+        // Container inferior com valor
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.setBackground(Color.WHITE);
         
@@ -121,29 +136,22 @@ public class DashboardView {
         leftContent.setBackground(Color.WHITE);
         
         JLabel valueLabel = new JLabel(value);
-        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 20)); // Reduzido de 28 para 20
+        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
         valueLabel.setForeground(new Color(17, 24, 39));
         valueLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         JLabel subtitleLabel = new JLabel("↗ " + subtitle);
-        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 9)); // Reduzido de 11 para 9
+        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 9));
         subtitleLabel.setForeground(new Color(34, 197, 94));
         subtitleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         leftContent.add(valueLabel);
         leftContent.add(subtitleLabel);
         
-        // Lado direito - Ícone menor
-        FontIcon icon = FontIcon.of(iconType, 14, new Color(156, 163, 175)); // Reduzido de 18 para 14
-        JLabel iconLabel = new JLabel();
-        iconLabel.setIcon(icon);
-        iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        
         bottomPanel.add(leftContent, BorderLayout.WEST);
-        bottomPanel.add(iconLabel, BorderLayout.EAST);
         
         mainLayout.add(titleLabel, BorderLayout.NORTH);
-        mainLayout.add(Box.createVerticalStrut(3)); // Reduzido de 5 para 3
+        mainLayout.add(Box.createVerticalStrut(3));
         mainLayout.add(bottomPanel, BorderLayout.SOUTH);
         
         card.add(mainLayout, BorderLayout.CENTER);
@@ -156,21 +164,21 @@ public class DashboardView {
         bottomPanel.setBackground(new Color(248, 250, 252));
         bottomPanel.setPreferredSize(new Dimension(Integer.MAX_VALUE, 300));
         
-        // Seção Cavalos Recentes
-        JPanel cavalosSection = createSection(FontAwesomeSolid.HORSE, "Cavalos Recentes", "Ver todos →", 
-            "Nenhum cavalo cadastrado");
+        // Seção Consultas de Hoje
+        JPanel consultasSection = createSection("📅", "Consultas de Hoje", "Ver Todos os Pacientes →", 
+            "Nenhuma consulta agendada para hoje");
         
-        // Seção Próximos Eventos
-        JPanel eventosSection = createSection(FontAwesomeSolid.CALENDAR, "Próximos Eventos", "", 
-            "Nenhum evento agendado");
+        // Seção Próximas Consultas
+        JPanel proximasSection = createSection("🕒", "Próximas Consultas", "", 
+            "Nenhuma consulta agendada");
         
-        bottomPanel.add(cavalosSection);
-        bottomPanel.add(eventosSection);
+        bottomPanel.add(consultasSection);
+        bottomPanel.add(proximasSection);
         
         return bottomPanel;
     }
     
-    private JPanel createSection(FontAwesomeSolid iconType, String title, String link, String emptyMessage) {
+    private JPanel createSection(String icon, String title, String link, String emptyMessage) {
         JPanel section = new JPanel(new BorderLayout());
         section.setBackground(Color.WHITE);
         section.setBorder(BorderFactory.createCompoundBorder(
@@ -186,9 +194,8 @@ public class DashboardView {
         JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         titlePanel.setBackground(Color.WHITE);
         
-        FontIcon headerIcon = FontIcon.of(iconType, 20, new Color(147, 51, 234));
-        JLabel iconLabel = new JLabel();
-        iconLabel.setIcon(headerIcon);
+        JLabel iconLabel = new JLabel(icon);
+        iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 20));
         
         JLabel titleLabel = new JLabel(title);
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
@@ -201,7 +208,7 @@ public class DashboardView {
         if (!link.isEmpty()) {
             JLabel linkLabel = new JLabel(link);
             linkLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-            linkLabel.setForeground(new Color(147, 51, 234));
+            linkLabel.setForeground(new Color(16, 185, 129));
             linkLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
             headerPanel.add(titlePanel, BorderLayout.WEST);
             headerPanel.add(linkLabel, BorderLayout.EAST);
@@ -214,9 +221,8 @@ public class DashboardView {
         emptyPanel.setLayout(new BoxLayout(emptyPanel, BoxLayout.Y_AXIS));
         emptyPanel.setBackground(Color.WHITE);
         
-        FontIcon emptyIcon = FontIcon.of(iconType, 48, new Color(209, 213, 219));
-        JLabel emptyIconLabel = new JLabel();
-        emptyIconLabel.setIcon(emptyIcon);
+        JLabel emptyIconLabel = new JLabel(icon);
+        emptyIconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 48));
         emptyIconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
         JLabel emptyLabel = new JLabel(emptyMessage);
