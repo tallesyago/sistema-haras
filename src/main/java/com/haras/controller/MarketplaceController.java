@@ -1,139 +1,159 @@
 package com.haras.controller;
 
-import com.haras.view.pages.MarketplaceView;
-import com.haras.model.ItemMarketplace;
+import com.haras.model.Equino;
+import com.haras.view.MarketplaceView;
 import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class MarketplaceController {
     private static MarketplaceController instance;
-    private MarketplaceView view;
-    private List<ItemMarketplace> items;
-    
+    private final List<Equino> equinos;
+    private MarketplaceView marketplaceView;
+    private boolean initialized = false;
+
     private MarketplaceController() {
-        this.view = new MarketplaceView();
-        this.items = new ArrayList<>();
-        initializeActions();
-        inicializarDadosExemplo();
+        this.equinos = new ArrayList<>();
+        initializeIfNeeded();
     }
-    
+
     public static MarketplaceController getInstance() {
         if (instance == null) {
             instance = new MarketplaceController();
         }
         return instance;
     }
-    
-    private void initializeActions() {
-        // Implementar ações do marketplace
+
+    private void initializeIfNeeded() {
+        if (!initialized) {
+            initialized = true;
+            loadEquinos();
+        }
     }
-    
-    public JPanel getView() {
-        return view.getContentPanel();
-    }
-    
-    private void inicializarDadosExemplo() {
-        // Adicionar alguns itens de exemplo
-        items.add(new ItemMarketplace(
-            UUID.randomUUID().toString(),
-            "Cavalo Puro Sangue Inglês",
-            "Cavalo",
-            "Excelente exemplar de PSI, 5 anos",
-            50000.0,
-            "1"
-        ));
+
+    private void loadEquinos() {
+        equinos.clear();
         
-        items.add(new ItemMarketplace(
-            UUID.randomUUID().toString(),
-            "Sela Profissional",
-            "Equipamento",
-            "Sela em couro legítimo",
-            2500.0,
-            "2"
-        ));
-    }
-    
-    public void addItemForSale() {
-        String[] itemTypes = {"Cavalo", "Equipamento", "Serviço"};
-        String type = (String) JOptionPane.showInputDialog(null, 
-            "Tipo de Item:", "Adicionar Item", 
-            JOptionPane.QUESTION_MESSAGE, null, itemTypes, itemTypes[0]);
+        // Dados de exemplo - ajustar conforme a estrutura da model Equino
+        Equino equino1 = new Equino();
+        equino1.setNome("Thunder");
+        equino1.setRaca("Puro Sangue Inglês");
+        equino1.setIdade(5);
+        equino1.setGenero("Macho");
         
-        if (type != null) {
-            String title = JOptionPane.showInputDialog(null, 
-                "Título do Anúncio:", "Adicionar Item", JOptionPane.QUESTION_MESSAGE);
-            
-            if (title != null && !title.trim().isEmpty()) {
-                String descricao = JOptionPane.showInputDialog(null, 
-                    "Descrição do Item:", "Adicionar Item", JOptionPane.QUESTION_MESSAGE);
-                    
-                String precoStr = JOptionPane.showInputDialog(null, 
-                    "Preço do Item:", "Adicionar Item", JOptionPane.QUESTION_MESSAGE);
-                    
+        Equino equino2 = new Equino();
+        equino2.setNome("Bella");
+        equino2.setRaca("Quarto de Milha");
+        equino2.setIdade(3);
+        equino2.setGenero("Fêmea");
+
+        Equino equino3 = new Equino();
+        equino3.setNome("Apollo");
+        equino3.setRaca("Lusitano");
+        equino3.setIdade(7);
+        equino3.setGenero("Macho");
+
+        equinos.add(equino1);
+        equinos.add(equino2);
+        equinos.add(equino3);
+        
+        System.out.println("Equinos carregados: " + equinos.size());
+    }
+
+    public void initializeView() {
+        try {
+            if (marketplaceView == null) {
+                System.out.println("Criando MarketplaceView...");
+                marketplaceView = new MarketplaceView(this);
+                System.out.println("MarketplaceView criada com sucesso");
+            }
+            marketplaceView.updateEquinos(equinos);
+            System.out.println("View atualizada com " + equinos.size() + " equinos");
+        } catch (Exception e) {
+            System.err.println("Erro ao inicializar view: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public void refreshView() {
+        if (marketplaceView != null) {
+            SwingUtilities.invokeLater(() -> {
                 try {
-                    double preco = Double.parseDouble(precoStr);
-                    ItemMarketplace novoItem = new ItemMarketplace(
-                        UUID.randomUUID().toString(),
-                        title.trim(),
-                        type,
-                        descricao,
-                        preco,
-                        "1" // ID do vendedor atual (pode ser obtido do usuário logado)
-                    );
-                    
-                    items.add(novoItem);
-                    JOptionPane.showMessageDialog(null, 
-                        "Item '" + title + "' adicionado com sucesso!", 
-                        "Sucesso", 
-                        JOptionPane.INFORMATION_MESSAGE);
-                    refreshMarketplace();
-                } catch (NumberFormatException e) {
-                    JOptionPane.showMessageDialog(null, 
-                        "Preço inválido!", 
-                        "Erro", 
-                        JOptionPane.ERROR_MESSAGE);
+                    marketplaceView.updateEquinos(equinos);
+                } catch (Exception e) {
+                    System.err.println("Erro ao atualizar view: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            });
+        }
+    }
+
+    public JPanel getView() {
+        try {
+            if (marketplaceView == null) {
+                System.out.println("View nula, inicializando...");
+                initializeView();
+            }
+            
+            if (marketplaceView != null) {
+                JPanel panel = marketplaceView.getContentPanel();
+                if (panel != null) {
+                    System.out.println("Retornando panel do marketplace");
+                    return panel;
+                } else {
+                    System.err.println("getContentPanel() retornou null!");
                 }
             }
+        } catch (Exception e) {
+            System.err.println("Erro ao obter view: " + e.getMessage());
+            e.printStackTrace();
         }
+        
+        System.err.println("Retornando JPanel vazio como fallback");
+        JPanel fallbackPanel = new JPanel();
+        fallbackPanel.add(new JLabel("Erro ao carregar Marketplace"));
+        return fallbackPanel;
     }
-    
-    public List<ItemMarketplace> searchItems(String query) {
-        final String searchQuery = query.toLowerCase();
-        return items.stream()
-            .filter(item -> 
-                item.getTitulo().toLowerCase().contains(searchQuery) ||
-                item.getDescricao().toLowerCase().contains(searchQuery))
-            .collect(Collectors.toList());
+
+    public List<Equino> getEquinos() {
+        return new ArrayList<>(equinos);
     }
-    
-    public List<ItemMarketplace> filterByCategory(String category) {
-        return items.stream()
-            .filter(item -> item.getTipo().equalsIgnoreCase(category))
-            .collect(Collectors.toList());
-    }
-    
-    public ItemMarketplace getItemDetails(String itemId) {
-        return items.stream()
-            .filter(item -> item.getId().equals(itemId))
-            .findFirst()
-            .orElse(null);
-    }
-    
-    public boolean removeItem(String itemId) {
-        return items.removeIf(item -> item.getId().equals(itemId));
-    }
-    
-    public List<ItemMarketplace> getAllItems() {
-        return new ArrayList<>(items);
-    }
-    
-    public void refreshMarketplace() {
-        if (view != null) {
-            view.getContentPanel().revalidate();
-            view.getContentPanel().repaint();
+
+    public List<Equino> filtrarEquinos(String searchText, String faixaPreco) {
+        List<Equino> resultado = new ArrayList<>(equinos);
+
+        // Filtrar por texto
+        if (searchText != null && !searchText.trim().isEmpty()) {
+            String search = searchText.toLowerCase();
+            resultado = resultado.stream()
+                .filter(e -> e.getNome().toLowerCase().contains(search) ||
+                           e.getRaca().toLowerCase().contains(search))
+                .collect(Collectors.toList());
         }
+
+        return resultado;
+    }
+
+    public void visualizarDetalhes(Equino equino) {
+        String detalhes = String.format(
+            "Nome: %s\nRaça: %s\nIdade: %d anos\nSexo: %s",
+            equino.getNome(),
+            equino.getRaca(),
+            equino.getIdade(),
+            equino.getGenero()
+        );
+
+        JOptionPane.showMessageDialog(null,
+            detalhes,
+            "Detalhes do Equino",
+            JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    public void entrarEmContato(Equino equino) {
+        JOptionPane.showMessageDialog(null,
+            String.format("Entre em contato para negociar %s", equino.getNome()),
+            "Contato",
+            JOptionPane.INFORMATION_MESSAGE);
     }
 }

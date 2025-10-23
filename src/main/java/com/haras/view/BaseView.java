@@ -367,4 +367,9 @@ public class BaseView extends JFrame {
     public void showAgenda() {
         navigateToPage(Page.AGENDA, btnAgenda);
     }
+
+    public JPanel getContentPanel() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getContentPanel'");
+    }
 }

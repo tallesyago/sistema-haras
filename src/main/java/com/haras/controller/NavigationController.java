@@ -1,9 +1,13 @@
 package com.haras.controller;
 
 import javax.swing.JPanel;
-import com.haras.view.pages.*;
 import com.haras.model.Usuario;
 import com.haras.view.BaseView;
+import com.haras.view.DashboardView;
+import com.haras.view.MeusCavalosView;
+import com.haras.view.MarketplaceView;
+import com.haras.view.AgendaView;
+import com.haras.view.HistoricoVeterinarioView;
 
 /**
  * Controller responsável pela navegação entre páginas e gerenciamento dos controladores específicos
@@ -12,6 +16,14 @@ public class NavigationController {
     private static NavigationController instance;
     private Usuario loggedUser;
     private BaseView currentView;
+    private JPanel mainContent;
+    
+    // Views específicas
+    private DashboardView dashboardView;
+    private MeusCavalosView meusCavalosView;
+    private MarketplaceView marketplaceView;
+    private AgendaView agendaView;
+    private HistoricoVeterinarioView historicoVeterinarioView;
     
     // Controladores específicos
     private AgendaController agendaController;
@@ -23,6 +35,7 @@ public class NavigationController {
     
     private NavigationController() {
         initializeControllers();
+        initializeViews();
     }
     
     /**
@@ -39,12 +52,38 @@ public class NavigationController {
      * Inicializa todos os controladores específicos
      */
     private void initializeControllers() {
-        agendaController = AgendaController.getInstance();
-        atendimentoController = AtendimentoController.getInstance();
-        clienteController = ClienteController.getInstance();
-        equinoController = EquinoController.getInstance();
-        marketplaceController = MarketplaceController.getInstance();
-        veterinaryController = VeterinaryController.getInstance();
+        try {
+            agendaController = AgendaController.getInstance();
+            atendimentoController = AtendimentoController.getInstance();
+            clienteController = ClienteController.getInstance();
+            equinoController = EquinoController.getInstance();
+            marketplaceController = MarketplaceController.getInstance();
+            veterinaryController = VeterinaryController.getInstance();
+        } catch (Exception e) {
+            System.err.println("Erro ao inicializar controladores: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * Inicializa todas as views
+     */
+    private void initializeViews() {
+        try {
+            dashboardView = new DashboardView();
+            meusCavalosView = new MeusCavalosView();
+            marketplaceView = new MarketplaceView(marketplaceController);
+            agendaView = new AgendaView(agendaController);
+            historicoVeterinarioView = new HistoricoVeterinarioView(veterinaryController);
+            
+            // Carregar eventos iniciais na agenda
+            agendaView.atualizarEventos(agendaController.getAllEvents());
+            
+            System.out.println("Views inicializadas com sucesso!");
+        } catch (Exception e) {
+            System.err.println("Erro ao inicializar views: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
     
     public enum Page {
@@ -60,25 +99,47 @@ public class NavigationController {
      */
     public JPanel getPage(Page page) {
         try {
+            JPanel panel = null;
+            
             switch (page) {
                 case DASHBOARD:
-                    return new DashboardView().getContentPanel();
+                    if (dashboardView != null) {
+                        panel = dashboardView.getContentPanel();
+                    }
+                    break;
                 case MEUS_CAVALOS:
-                    // Preferir painel fornecido pelo controller
-                    if (equinoController != null) return equinoController.getView();
-                    return new MeusCavalosView().getContentPanel();
+                    if (meusCavalosView != null) {
+                        panel = meusCavalosView.getContentPanel();
+                    }
+                    break;
                 case MARKETPLACE:
-                    if (marketplaceController != null) return marketplaceController.getView();
-                    return new MarketplaceView().getContentPanel();
+                    if (marketplaceView != null) {
+                        panel = marketplaceView.getContentPanel();
+                    }
+                    break;
                 case AGENDA:
-                    if (agendaController != null) return agendaController.getView();
-                    return new AgendaView().getContentPanel();
+                    if (agendaView != null) {
+                        panel = agendaView.getContentPanel();
+                    }
+                    break;
                 case HISTORICO_VETERINARIO:
-                    return new HistoricoVeterinarioView().getContentPanel();
+                    if (historicoVeterinarioView != null) {
+                        panel = historicoVeterinarioView.getContentPanel();
+                    }
+                    break;
                 default:
-                    return new DashboardView().getContentPanel();
+                    if (dashboardView != null) {
+                        panel = dashboardView.getContentPanel();
+                    }
             }
+            
+            if (panel != null) {
+                return panel;
+            }
+            
+            return createErrorPanel("View não disponível: " + page.name());
         } catch (Exception e) {
+            e.printStackTrace();
             return createErrorPanel("Erro ao carregar página: " + e.getMessage());
         }
     }
@@ -89,7 +150,9 @@ public class NavigationController {
     private JPanel createErrorPanel(String errorMessage) {
         JPanel panel = new JPanel();
         panel.setBackground(new java.awt.Color(255, 245, 245));
-        // Implementação básica de erro mantendo o estilo
+        javax.swing.JLabel errorLabel = new javax.swing.JLabel(errorMessage);
+        errorLabel.setForeground(new java.awt.Color(200, 0, 0));
+        panel.add(errorLabel);
         return panel;
     }
     
@@ -171,7 +234,6 @@ public class NavigationController {
      * Método acionado pela view para trocar o perfil ativo (placeholder)
      */
     public void toggleProfile() {
-        // Implementação simples: alternar usuário logado para null ou manter (pode ser aprimorada)
         if (this.loggedUser == null) {
             // Placeholder: criar um usuário temporário se necessário
             // this.loggedUser = new Usuario();
@@ -193,5 +255,95 @@ public class NavigationController {
             "Erro",
             javax.swing.JOptionPane.ERROR_MESSAGE
         );
+    }
+
+    /**
+     * Define o painel principal onde as views serão exibidas
+     */
+    public void setMainContent(JPanel mainContent) {
+        this.mainContent = mainContent;
+        showDashboard();
+    }
+
+    /**
+     * Navega para a página especificada
+     */
+    public void navigateToPage(Page page) {
+        if (mainContent != null) {
+            mainContent.removeAll();
+            mainContent.add(getPage(page));
+            mainContent.revalidate();
+            mainContent.repaint();
+        }
+    }
+
+    /**
+     * Exibe a view Dashboard no painel principal
+     */
+    public void showDashboard() {
+        navigateToPage(Page.DASHBOARD);
+    }
+
+    /**
+     * Exibe a view "Meus Cavalos" no painel principal
+     */
+    public void showMeusCavalos() {
+        navigateToPage(Page.MEUS_CAVALOS);
+    }
+
+    /**
+     * Exibe a view Marketplace no painel principal
+     */
+    public void showMarketplace() {
+        navigateToPage(Page.MARKETPLACE);
+    }
+
+    /**
+     * Exibe a view Agenda no painel principal
+     */
+    public void showAgenda() {
+        navigateToPage(Page.AGENDA);
+    }
+
+    /**
+     * Exibe a view Histórico Veterinário no painel principal
+     */
+    public void showHistoricoVeterinario() {
+        navigateToPage(Page.HISTORICO_VETERINARIO);
+    }
+
+    /**
+     * Obtém a view de cavalos
+     */
+    public MeusCavalosView getMeusCavalosView() {
+        return meusCavalosView;
+    }
+    
+    /**
+     * Obtém a view de dashboard
+     */
+    public DashboardView getDashboardView() {
+        return dashboardView;
+    }
+    
+    /**
+     * Obtém a view de marketplace
+     */
+    public MarketplaceView getMarketplaceView() {
+        return marketplaceView;
+    }
+    
+    /**
+     * Obtém a view de agenda
+     */
+    public AgendaView getAgendaView() {
+        return agendaView;
+    }
+    
+    /**
+     * Obtém a view de histórico veterinário
+     */
+    public HistoricoVeterinarioView getHistoricoVeterinarioView() {
+        return historicoVeterinarioView;
     }
 }

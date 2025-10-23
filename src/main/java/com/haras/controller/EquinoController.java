@@ -4,6 +4,8 @@ import com.haras.model.Equino;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 
 public class EquinoController {
     private static EquinoController instance;
@@ -31,7 +33,7 @@ public class EquinoController {
     }
     
     public boolean adicionarEquino(Equino equino) {
-        if (equino != null) {
+        if (equino != null && equino.getNome() != null && !equino.getNome().trim().isEmpty()) {
             equino.setId(proximoId++);
             equinos.add(equino);
             return true;
@@ -60,6 +62,14 @@ public class EquinoController {
     }
     
     public List<Equino> listarEquinos() {
+        for (Equino equino : equinos) {
+            if (equino.getDataNascimento() != null) {
+                long idade = ChronoUnit.YEARS.between(equino.getDataNascimento(), LocalDate.now());
+                equino.setIdade((int) idade);
+            } else if (equino.getIdade() == 0) {
+                equino.setIdade(1); // Default age if not set
+            }
+        }
         return new ArrayList<>(equinos);
     }
     
@@ -94,16 +104,39 @@ public class EquinoController {
     public void promptAndAddEquino(java.awt.Component parent) {
         try {
             String nome = javax.swing.JOptionPane.showInputDialog(parent, "Nome do Cavalo:", "Adicionar Cavalo", javax.swing.JOptionPane.QUESTION_MESSAGE);
-            if (nome == null || nome.trim().isEmpty()) return;
+            if (nome == null || nome.trim().isEmpty()) {
+                javax.swing.JOptionPane.showMessageDialog(parent, "Nome é obrigatório.", "Erro", javax.swing.JOptionPane.ERROR_MESSAGE);
+                return;
+            }
 
             String raca = javax.swing.JOptionPane.showInputDialog(parent, "Raça:", "Adicionar Cavalo", javax.swing.JOptionPane.QUESTION_MESSAGE);
-            if (raca == null) raca = "";
+            if (raca == null) raca = "Não informada";
 
-            String idade = javax.swing.JOptionPane.showInputDialog(parent, "Idade (ex: 5 anos):", "Adicionar Cavalo", javax.swing.JOptionPane.QUESTION_MESSAGE);
-            if (idade == null) idade = "";
+            String idadeStr = javax.swing.JOptionPane.showInputDialog(parent, "Idade (apenas números):", "Adicionar Cavalo", javax.swing.JOptionPane.QUESTION_MESSAGE);
+            int idade = 0;
+            try {
+                if (idadeStr != null && !idadeStr.trim().isEmpty()) {
+                    idade = Integer.parseInt(idadeStr.trim());
+                    if (idade < 0 || idade > 40) {
+                        throw new NumberFormatException("Idade deve estar entre 0 e 40 anos");
+                    }
+                }
+            } catch (NumberFormatException ex) {
+                javax.swing.JOptionPane.showMessageDialog(parent, "Idade inválida. Use apenas números entre 0 e 40.", "Erro", javax.swing.JOptionPane.ERROR_MESSAGE);
+                return;
+            }
 
-            String status = javax.swing.JOptionPane.showInputDialog(parent, "Status (Disponível/Treinamento/Venda):", "Adicionar Cavalo", javax.swing.JOptionPane.QUESTION_MESSAGE);
-            if (status == null || status.trim().isEmpty()) status = "Disponível";
+            String[] statusOptions = {"Disponível", "Treinamento", "Venda"};
+            String status = (String) javax.swing.JOptionPane.showInputDialog(
+                parent,
+                "Status:",
+                "Adicionar Cavalo",
+                javax.swing.JOptionPane.QUESTION_MESSAGE,
+                null,
+                statusOptions,
+                statusOptions[0]
+            );
+            if (status == null) status = "Disponível";
 
             String precoStr = javax.swing.JOptionPane.showInputDialog(parent, "Preço (apenas números):", "Adicionar Cavalo", javax.swing.JOptionPane.QUESTION_MESSAGE);
             double preco = 0.0;
@@ -122,6 +155,7 @@ public class EquinoController {
             novo.setGenero("Desconhecido");
             novo.setStatus(status.trim());
             novo.setPreco(preco);
+            novo.setIdade(idade);
 
             boolean ok = adicionarEquino(novo);
             if (ok) {

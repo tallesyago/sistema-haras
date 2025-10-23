@@ -1,79 +1,100 @@
 package com.haras.controller;
 
-import com.haras.view.pages.VeterinaryDashboardView;
+import com.haras.model.ConsultaVeterinaria;
+import com.haras.model.Equino;
+import com.haras.view.HistoricoVeterinarioView;
 import javax.swing.*;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class VeterinaryController {
     private static VeterinaryController instance;
-    private VeterinaryDashboardView view;
-    
+    private final List<ConsultaVeterinaria> consultas;
+    private HistoricoVeterinarioView view;
+
     private VeterinaryController() {
-        this.view = new VeterinaryDashboardView();
-        initializeActions();
+        this.consultas = new ArrayList<>();
     }
-    
+
     public static VeterinaryController getInstance() {
         if (instance == null) {
             instance = new VeterinaryController();
         }
         return instance;
     }
-    
-    private void initializeActions() {
-        // Implementar ações específicas do veterinário
+
+    public void setView(HistoricoVeterinarioView view) {
+        this.view = view;
     }
-    
+
     public JPanel getView() {
+        if (view == null) {
+            view = new HistoricoVeterinarioView(this);
+        }
+        view.atualizarConsultas(consultas);
         return view.getContentPanel();
     }
-    
-    public void createNewConsultation() {
-        JOptionPane.showMessageDialog(null, 
-            "Nova Consulta - Funcionalidade em desenvolvimento!", 
-            "Sistema Veterinário", 
-            JOptionPane.INFORMATION_MESSAGE);
+
+    public List<ConsultaVeterinaria> getConsultas() {
+        return new ArrayList<>(consultas);
     }
 
-    /**
-     * Controller-owned dialog to create a new consultation (keeps MVC)
-     */
-    public void createNewConsultationDialog(java.awt.Component parent) {
-        try {
-            String descricao = javax.swing.JOptionPane.showInputDialog(parent, "Descrição da consulta:", "Nova Consulta", javax.swing.JOptionPane.QUESTION_MESSAGE);
-            if (descricao == null || descricao.trim().isEmpty()) return;
+    public List<Equino> getCavalos() {
+        // Obter cavalos do EquinoController
+        return EquinoController.getInstance().listarEquinos();
+    }
 
-            // Hoje simulamos criação — registrar lógica aqui
-            javax.swing.JOptionPane.showMessageDialog(parent, "Consulta criada: " + descricao, "Sucesso", javax.swing.JOptionPane.INFORMATION_MESSAGE);
-
-            // Após criar, solicitar refresh da view
-            try {
-                com.haras.controller.NavigationController nav = com.haras.controller.NavigationController.getInstance();
-                if (nav.getCurrentView() != null) {
-                    nav.getCurrentView().showDashboard();
-                }
-            } catch (Exception ex) {
-                // ignore
-            }
-        } catch (Exception e) {
-            javax.swing.JOptionPane.showMessageDialog(parent, "Erro: " + e.getMessage(), "Erro", javax.swing.JOptionPane.ERROR_MESSAGE);
+    public void novaConsulta() {
+        if (view != null) {
+            view.mostrarFormularioNovaConsulta();
         }
     }
-    
-    public void viewTodayConsultations() {
-        JOptionPane.showMessageDialog(null, 
-            "Consultas de Hoje - Funcionalidade em desenvolvimento!", 
-            "Sistema Veterinário", 
-            JOptionPane.INFORMATION_MESSAGE);
+
+    public void createNewConsultationDialog(Component parent) {
+        if (view != null) {
+            view.mostrarFormularioNovaConsulta();
+        } else {
+            // Criar view temporária se não existir
+            HistoricoVeterinarioView tempView = new HistoricoVeterinarioView(this);
+            tempView.mostrarFormularioNovaConsulta();
+        }
     }
-    
-    public void viewPatients() {
-        JOptionPane.showMessageDialog(null, 
-            "Lista de Pacientes - Funcionalidade em desenvolvimento!", 
-            "Sistema Veterinário", 
-            JOptionPane.INFORMATION_MESSAGE);
+
+    public void salvarConsulta(ConsultaVeterinaria consulta) {
+        if (consulta != null) {
+            consultas.add(consulta);
+            if (view != null) {
+                view.atualizarConsultas(consultas);
+            }
+            JOptionPane.showMessageDialog(null,
+                "Consulta registrada com sucesso!",
+                "Sucesso",
+                JOptionPane.INFORMATION_MESSAGE);
+        }
     }
-    
-    public void refreshVeterinaryStats() {
-        // Atualizar estatísticas veterinárias
+
+    public void visualizarConsulta(ConsultaVeterinaria consulta) {
+        if (consulta != null && view != null) {
+            view.mostrarDetalhesConsulta(consulta);
+        }
+    }
+
+    public void excluirConsulta(String consultaId) {
+        int confirm = JOptionPane.showConfirmDialog(null,
+            "Deseja realmente excluir esta consulta?",
+            "Confirmar Exclusão",
+            JOptionPane.YES_NO_OPTION);
+        
+        if (confirm == JOptionPane.YES_OPTION) {
+            consultas.removeIf(c -> c.getId().equals(consultaId));
+            if (view != null) {
+                view.atualizarConsultas(consultas);
+            }
+            JOptionPane.showMessageDialog(null,
+                "Consulta excluída com sucesso!",
+                "Sucesso",
+                JOptionPane.INFORMATION_MESSAGE);
+        }
     }
 }
